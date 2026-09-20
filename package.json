@@ -1,0 +1,39 @@
+{
+  "name": "@jsndev/devskill",
+  "version": "0.1.0",
+  "description": "Gerenciador portátil de Agent Skills para Codex e Claude Code",
+  "type": "module",
+  "bin": {
+    "devskill": "dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "skills"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "node --import tsx src/cli.ts",
+    "prepack": "npm run build",
+    "start": "node dist/cli.js",
+    "test": "node --import tsx test/index.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "commander": "^14.0.2",
+    "execa": "^9.6.0",
+    "js-yaml": "^4.1.0",
+    "zod": "^4.1.11"
+  },
+  "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^20.19.43",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.2"
+  }
+}
