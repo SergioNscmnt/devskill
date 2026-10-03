@@ -1,4 +1,8 @@
 import './host-adapter.test.js';
+import './host-detector.test.js';
+import './bundled-skill.test.js';
 import './markdown-terminal.test.js';
+import './config-loader.test.js';
+import './install-command.test.js';
 import './skill-installer.test.js';
 import './skill-loader.test.js';

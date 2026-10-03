@@ -21,6 +21,11 @@ describe('SkillInstaller', () => {
     const skill = await loadSkill(source);
     const installer = new SkillInstaller({ projectRoot: project, userHome: root });
 
+    await assert.rejects(
+      lstat(installer.destination(skill, codexAdapter, 'project')),
+      { code: 'ENOENT' },
+    );
+
     const installed = await installer.install(skill, codexAdapter, 'project');
     assert.equal(installed.status, 'installed');
     assert.equal((await lstat(installed.destination)).isSymbolicLink(), true);

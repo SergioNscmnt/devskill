@@ -1,23 +1,26 @@
 import { resolve } from 'node:path';
-import type { InstallScope, HostTarget } from '../../models/skill.js';
-import { defaultCatalogRoot } from '../../utils/paths.js';
+import { bundledSkillsDirectory } from '../../core/bundled-skill.js';
+import { loadConfig } from '../../core/config-loader.js';
 
 export interface CatalogOptions {
   source?: string;
-  project?: string;
 }
 
-export interface TargetOptions extends CatalogOptions {
-  target: HostTarget;
-  scope: InstallScope;
-}
+export async function catalogRoot(options: CatalogOptions): Promise<string> {
+  if (options.source) {
+    return resolve(options.source);
+  }
 
-export function catalogRoot(options: CatalogOptions): string {
-  return options.source ? resolve(options.source) : defaultCatalogRoot();
-}
+  if (process.env.DEVSKILL_SKILLS_DIR) {
+    return resolve(process.env.DEVSKILL_SKILLS_DIR);
+  }
 
-export function projectRoot(options: CatalogOptions): string {
-  return resolve(options.project ?? process.cwd());
+  const config = await loadConfig();
+  if (config.skillsDir) {
+    return config.skillsDir;
+  }
+
+  return bundledSkillsDirectory();
 }
 
 export function wantsAll(skillName: string | undefined, all: boolean): boolean {

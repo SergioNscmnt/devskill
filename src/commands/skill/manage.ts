@@ -14,23 +14,24 @@ import type {
 import { createPathContext } from '../../utils/paths.js';
 import {
   catalogRoot,
-  projectRoot,
   wantsAll,
-  type TargetOptions,
+  type CatalogOptions,
 } from './options.js';
 import { printOperation } from './output.js';
 
-interface ManageOptions extends TargetOptions {
+interface ManageOptions extends CatalogOptions {
+  target?: HostTarget;
   all: boolean;
   yes: boolean;
+  scope: InstallScope;
 }
 
 type Operation = 'install' | 'update' | 'remove';
 
 const descriptions: Record<Operation, string> = {
-  install: 'Instala uma skill nos hosts selecionados',
-  update: 'Atualiza os links das skills instaladas',
-  remove: 'Remove uma skill dos hosts selecionados',
+  install: 'Disponibiliza uma skill no projeto para Codex e Claude Code',
+  update: 'Atualiza os links da skill no projeto',
+  remove: 'Remove uma skill do projeto',
 };
 
 async function confirmRemoveAll(): Promise<boolean> {
@@ -84,48 +85,50 @@ async function executeOperation(
 }
 
 export function registerManageCommand(parent: Command, operation: Operation): void {
-  parent
+  const command = parent
     .command(`${operation} [skill_name]`)
     .description(descriptions[operation])
     .option('--all', 'aplica a operação a todas as skills', false)
     .addOption(
-      new Option('--target <host>', 'host de destino')
-        .choices(['codex', 'claude', 'all'])
-        .default('all'),
+      new Option('--target <host>', 'agentes de destino')
+        .choices(['codex', 'claude', 'all']),
     )
+    .option('--source <directory>', 'diretório do catálogo de skills')
     .addOption(
-      new Option('--scope <scope>', 'escopo de instalação')
+      new Option('--scope <scope>', 'local de instalação das skills')
         .choices(['project', 'user'])
         .default('project'),
     )
-    .option('--source <directory>', 'diretório do catálogo de skills')
-    .option('--project <directory>', 'raiz do projeto', process.cwd())
-    .option('--yes', 'não pede confirmação para remove all', false)
-    .action(async (skillName: string | undefined, options: ManageOptions) => {
-      const all = wantsAll(skillName, options.all);
-      if (operation === 'remove' && all && !options.yes) {
-        const confirmed = await confirmRemoveAll();
-        if (!confirmed) {
-          process.stdout.write('Operação cancelada.\n');
-          return;
-        }
-      }
+    .option('--yes', 'não pede confirmação para delete all', false);
 
-      const catalog = new SkillCatalog(catalogRoot(options));
-      const skills = await selectSkills(catalog, skillName, options.all);
-      const installer = new SkillInstaller(
-        createPathContext(projectRoot(options)),
+  if (operation === 'remove') {
+    command.alias('delete');
+  }
+
+  command.action(async (skillName: string | undefined, options: ManageOptions) => {
+    const all = wantsAll(skillName, options.all);
+    if (operation === 'remove' && all && !options.yes) {
+      const confirmed = await confirmRemoveAll();
+      if (!confirmed) {
+        process.stdout.write('Operação cancelada.\n');
+        return;
+      }
+    }
+
+    const catalog = new SkillCatalog(await catalogRoot(options));
+    const skills = await selectSkills(catalog, skillName, options.all);
+    const installer = new SkillInstaller(createPathContext());
+    const target = options.target ?? 'all';
+
+    for (const skill of skills) {
+      const results = await executeOperation(
+        operation,
+        skill,
+        installer,
+        target,
+        options.scope,
       );
-
-      for (const skill of skills) {
-        const results = await executeOperation(
-          operation,
-          skill,
-          installer,
-          options.target,
-          options.scope,
-        );
-        results.forEach(printOperation);
-      }
-    });
+      results.forEach(printOperation);
+    }
+  });
 }

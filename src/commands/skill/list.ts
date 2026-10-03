@@ -5,11 +5,13 @@ import { resolveHostAdapters } from '../../hosts/index.js';
 import type { HostTarget, InstallScope } from '../../models/skill.js';
 import { renderMarkdownForTerminal } from '../../utils/markdown-terminal.js';
 import { createPathContext } from '../../utils/paths.js';
-import { catalogRoot, projectRoot, type TargetOptions } from './options.js';
+import { catalogRoot, type CatalogOptions } from './options.js';
 
-interface ListOptions extends TargetOptions {
+interface ListOptions extends CatalogOptions {
+  target: HostTarget;
   json: boolean;
   status: boolean;
+  scope: InstallScope;
 }
 
 const maxListDescriptionLength = 140;
@@ -29,21 +31,20 @@ export function registerListCommand(parent: Command): void {
     .command('list')
     .description('Lista as skills disponíveis no catálogo local')
     .option('--source <directory>', 'diretório do catálogo de skills')
-    .option('--project <directory>', 'raiz do projeto', process.cwd())
     .addOption(
       new Option('--target <host>', 'host consultado')
         .choices(['codex', 'claude', 'all'])
         .default('all'),
     )
+    .option('--status', 'inclui a disponibilidade no escopo escolhido por host', false)
     .addOption(
       new Option('--scope <scope>', 'escopo consultado')
         .choices(['project', 'user'])
         .default('project'),
     )
-    .option('--status', 'inclui o estado de instalação por host', false)
     .option('--json', 'emite JSON', false)
     .action(async (options: ListOptions) => {
-      const catalog = new SkillCatalog(catalogRoot(options));
+      const catalog = new SkillCatalog(await catalogRoot(options));
       const skills = await catalog.list();
       const rows = await Promise.all(
         skills.map(async (skill) => {
@@ -57,17 +58,16 @@ export function registerListCommand(parent: Command): void {
             return row;
           }
 
-          const context = createPathContext(projectRoot(options));
+          const context = createPathContext();
           const installer = new SkillInstaller(context);
           const hosts = resolveHostAdapters(options.target as HostTarget);
-          const scope = options.scope as InstallScope;
           return {
             ...row,
             installed: Object.fromEntries(
               await Promise.all(
                 hosts.map(async (host) => [
                   host.name,
-                  await installer.isInstalled(skill, host, scope),
+                  await installer.isInstalled(skill, host, options.scope),
                 ]),
               ),
             ),

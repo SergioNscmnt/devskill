@@ -18,3 +18,16 @@ export function registerSkillCommands(program: Command): void {
   registerManageCommand(skill, 'remove');
   registerRunCommand(skill);
 }
+
+export function registerInstallCommand(program: Command): void {
+  registerManageCommand(program, 'install');
+}
+
+export function registerTopLevelSkillCommands(program: Command): void {
+  registerListCommand(program);
+  registerShowCommand(program);
+  registerValidateCommand(program);
+  registerManageCommand(program, 'update');
+  registerManageCommand(program, 'remove');
+  registerRunCommand(program);
+}
