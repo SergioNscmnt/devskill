@@ -5,26 +5,21 @@ import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 import { Command } from 'commander';
 import { registerConfigCommands } from './commands/config.js';
-import { registerSetupCommand } from './commands/setup.js';
-import {
-  registerInstallCommand,
-  registerSkillCommands,
-  registerTopLevelSkillCommands,
-} from './commands/skill/index.js';
+import { registerGlobalCommands } from './commands/global.js';
+import { registerSkillCommands } from './commands/skill/index.js';
 import { DevskillError } from './errors/devskill-error.js';
 
 export function createProgram(): Command {
   const program = new Command()
-    .name('skill')
+    .name('devskill-cli')
     .description('Gerenciador de Agent Skills para Codex e Claude Code')
-    .version('0.2.0')
+    .version('0.3.0')
     .showHelpAfterError();
 
-  registerSkillCommands(program);
-  registerTopLevelSkillCommands(program);
-  registerInstallCommand(program);
+  registerGlobalCommands(program);
+  const legacy = program.command('legacy').description('Comandos legados de gerenciamento por projeto');
+  registerSkillCommands(legacy);
   registerConfigCommands(program);
-  registerSetupCommand(program);
   return program;
 }
 

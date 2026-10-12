@@ -1,9 +1,10 @@
 {
   "name": "@jsndev/devskill",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "Gerenciador portátil de Agent Skills para Codex e Claude Code",
   "type": "module",
   "bin": {
+    "devskill-cli": "dist/cli.js",
     "skill": "dist/cli.js",
     "devskill": "dist/cli.js"
   },

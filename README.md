@@ -1,88 +1,61 @@
-# devskill
+# DevSkill CLI
 
-CLI para gerenciar um catálogo local de [Agent Skills](https://agentskills.io)
-e disponibilizá-las no Codex e no Claude Code.
+Gerenciador de Agent Skills para Codex e Claude Code. O pacote contém o catálogo; somente as skills escolhidas são copiadas para os diretórios globais dos agentes. Nenhum arquivo é criado nos projetos de trabalho.
 
-## Instalação e inicialização
-
-Instale o pacote globalmente para ter o comando `skill` disponível:
+## Instalação
 
 ```bash
 npm install --global @jsndev/devskill
+devskill-cli init
 ```
 
-Dentro do projeto, configure a integração nos dois agentes:
-
-```bash
-skill init
-```
-
-O comando cria links para a skill roteadora em `.agents/skills` e
-`.claude/skills` no projeto atual. Depois, instale no projeto as skills que
-quiser disponibilizar no chat:
-
-```bash
-skill list
-skill install backend
-skill install all
-```
-
-As skills instaladas podem ser chamadas diretamente no chat do agente, por
-exemplo `$backend` no Codex ou `/backend` no Claude Code. Também é possível
-invocar um fluxo do catálogo pelo roteador `$devskill backend` no Codex ou
-`/devskill backend` no Claude Code.
+`init` prepara os diretórios pessoais reconhecidos pelos agentes e não instala skills. No WSL, o CLI usa o HOME Linux da sessão.
 
 ## Comandos
 
-```bash
-skill init
-skill list
-skill list --status
-skill install backend
-skill install all
-skill update backend
-skill update all
-skill delete backend
-skill delete all --yes
-skill show backend
-skill validate
+```text
+devskill-cli init
+devskill-cli list
+devskill-cli install backend
+devskill-cli install all
+devskill-cli install all --sync
+devskill-cli remove backend
+devskill-cli remove all
+devskill-cli update
 ```
 
-`delete all` pede confirmação. `--target codex`, `--target claude` e
-`--target all` escolhem os agentes; o padrão é `all`. `--scope user` instala,
-atualiza, lista ou remove skills no escopo do usuário em vez do projeto.
+`list` verifica os diretórios reais e identifica separadamente Codex e Claude quando os estados diferem. O argumento `all` também vale para `remove`. `--host codex|claude|all` seleciona agentes, e `--source <diretório>` escolhe um catálogo alternativo.
 
-O comando `devskill` continua disponível como alias do executável `skill`.
+As invocações instaladas são `$devskill-backend` no Codex e `/devskill_backend` no Claude Code. Inicie uma nova sessão do agente após instalar ou sincronizar para atualizar a descoberta.
 
-## Catálogo
+`install` é idempotente e não substitui pastas existentes. As cópias instaladas carregam um manifesto de propriedade e hashes. `remove` apaga somente arquivos gerenciados que continuam inalterados; arquivos modificados ou adicionados são preservados. `--sync` atualiza uma instalação gerenciada apenas após confirmar que seus arquivos continuam intactos.
 
-O pacote inclui skills padrão em `skills/<nome>/SKILL.md`. O frontmatter
-obrigatório é:
+`update` compara a versão instalada com a tag `latest` do npm e atualiza o pacote global. Skills existentes não são sincronizadas automaticamente; use `devskill-cli install all --sync` quando quiser fazê-lo.
 
-```markdown
----
-name: code-review
-description: Reviews code changes. Use when the user requests a code review.
----
+O caminho padrão é `~/.agents/skills` para Codex e `~/.claude/skills` para Claude Code. `CLAUDE_CONFIG_DIR` permite alterar a raiz pessoal do Claude. Também são aceitos `DEVSKILL_CODEX_SKILLS_DIR` e `DEVSKILL_CLAUDE_SKILLS_DIR` para definir diretamente os diretórios de skills.
 
-Instructions for the agent.
-```
+## Catálogo e desenvolvimento
 
-Para usar um catálogo personalizado:
-
-```bash
-skill config set skills-dir ~/Projetos/minhas-skills
-```
-
-Também é possível passar `--source <diretório>` em comandos de catálogo ou
-definir `DEVSKILL_SKILLS_DIR` para uma substituição temporária.
-
-## Desenvolvimento
-
-Requer Node.js 20 ou superior.
+Cada pasta imediata em `skills/` contendo `SKILL.md` é descoberta automaticamente. O manifesto precisa ter frontmatter YAML com `name` e `description` e instruções no corpo. Recursos auxiliares são copiados com a skill.
 
 ```bash
 npm install
 npm run build
 npm test
+npm pack --dry-run
 ```
+
+O executável `skill` e o alias `devskill` permanecem disponíveis para compatibilidade. Os comandos legados de catálogo estão agrupados em `devskill-cli legacy`.
+
+## Publicação
+
+O pacote mantém `@jsndev/devskill` e publicação npm pública. Para publicar manualmente uma versão preparada:
+
+```bash
+npm run build
+npm test
+npm pack --dry-run
+npm publish --access public
+```
+
+O CLI não publica pacotes.

@@ -89,7 +89,7 @@ describe('detecção automática do agente', () => {
     const installer = new SkillInstaller({ projectRoot: project, userHome: root });
     await installer.install(skill, codexAdapter, 'user');
 
-    const host = await detectHostForSkill(skill, installer, {});
+    const host = await detectHostForSkill(skill, installer, {}, 'user');
     assert.equal(host.name, 'codex');
   });
 
@@ -110,7 +110,7 @@ describe('detecção automática do agente', () => {
 
     const host = await detectHostForSkill(skill, installer, {
       defaultAgent: 'claude',
-    });
+    }, 'user');
     assert.equal(host.name, 'claude');
   });
 });
