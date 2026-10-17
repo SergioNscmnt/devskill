@@ -1,0 +1,11 @@
+# Checklist de revisão — template-base
+- [ ] Navbar, sidebar, main e footer corretamente identificados
+- [ ] Busca e logout funcionais ou explicitamente demonstrativos
+- [ ] Usuário/workspace vinculados a dados corretos
+- [ ] Links e seção ativa fazem sentido para o produto
+- [ ] Controle de sidebar acessível quando presente
+- [ ] Fluxo de teclado, foco e salto para main verificados
+- [ ] Responsividade e overflow verificados
+- [ ] Estados loading, vazio e erro coerentes
+- [ ] Métricas, uptime, versão e ambiente são reais ou marcados como exemplo
+- [ ] Testes executados e limitações documentadas

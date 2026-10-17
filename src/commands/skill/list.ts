@@ -1,5 +1,5 @@
 import { Command, Option } from 'commander';
-import { SkillCatalog } from '../../core/skill-catalog.js';
+import { LocalSkillCatalog } from '../../core/local-skill-catalog.js';
 import { SkillInstaller } from '../../core/skill-installer.js';
 import { resolveHostAdapters } from '../../hosts/index.js';
 import type { HostTarget, InstallScope } from '../../models/skill.js';
@@ -44,7 +44,7 @@ export function registerListCommand(parent: Command): void {
     )
     .option('--json', 'emite JSON', false)
     .action(async (options: ListOptions) => {
-      const catalog = new SkillCatalog(await catalogRoot(options));
+      const catalog = new LocalSkillCatalog(await catalogRoot(options));
       const skills = await catalog.list();
       const rows = await Promise.all(
         skills.map(async (skill) => {

@@ -3,7 +3,7 @@ import { mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
-import { SkillCatalog } from '../src/core/skill-catalog.js';
+import { LocalSkillCatalog } from '../src/core/local-skill-catalog.js';
 import { GlobalSkillManager, agentSkillName, globalSkillsDirectory } from '../src/core/global-skills.js';
 import { compareVersions, updatePackage } from '../src/commands/global.js';
 
@@ -12,10 +12,10 @@ const context = (userHome: string) => ({
   codexSkillsDirectory: join(userHome, '.agents', 'skills'),
   claudeSkillsDirectory: join(userHome, '.claude', 'skills'),
 });
-async function fixture(): Promise<{ root: string; catalog: SkillCatalog; manager: GlobalSkillManager }> {
+async function fixture(): Promise<{ root: string; catalog: LocalSkillCatalog; manager: GlobalSkillManager }> {
   const root = await mkdtemp(join(tmpdir(), 'devskill-global-'));
   const home = join(root, 'home');
-  return { root, catalog: new SkillCatalog(join(process.cwd(), 'skills')), manager: new GlobalSkillManager(context(home)) };
+  return { root, catalog: new LocalSkillCatalog(join(process.cwd(), 'skills')), manager: new GlobalSkillManager(context(home)) };
 }
 
 test('init prepara diretórios globais sem instalar skills e caminhos respeitam HOME/override', async () => {
@@ -74,9 +74,9 @@ test('catalogo reconhece nova pasta válida e rejeita SKILL.md inválido', async
     await mkdir(join(root, 'sample-skill'), { recursive: true });
     const manifest = join(root, 'sample-skill', 'SKILL.md');
     await writeFile(manifest, '---\nname: sample-skill\ndescription: Test sample skill.\n---\n\nDo the test.\n');
-    assert.equal((await new SkillCatalog(root).get('sample-skill')).name, 'sample-skill');
+    assert.equal((await new LocalSkillCatalog(root).get('sample-skill')).name, 'sample-skill');
     await writeFile(manifest, 'not a valid skill');
-    await assert.rejects(new SkillCatalog(root).list(), /Frontmatter/);
+    await assert.rejects(new LocalSkillCatalog(root).list(), /Frontmatter/);
   } finally { await rm(f.root, { recursive: true, force: true }); }
 });
 

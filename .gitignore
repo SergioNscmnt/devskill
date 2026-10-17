@@ -2,3 +2,22 @@ node_modules/
 dist/
 coverage/
 *.log
+
+# Artefatos de build e empacotamento
+*.tsbuildinfo
+*.tgz
+.npm/
+
+# Arquivos temporários dos scripts Python das skills
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Configurações locais e metadados do sistema
+.env
+.env.*
+!.env.example
+!.env.sample
+*:Zone.Identifier
+.DS_Store
+Thumbs.db

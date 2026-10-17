@@ -1,7 +1,7 @@
 interface:
   display_name: "Devskill"
-  short_description: "Load a workflow from your local skill catalog"
-  default_prompt: "Use $devskill backend to apply the backend workflow to this task."
+  short_description: "Carrega uma skill do catálogo DevSkill"
+  default_prompt: "Use $devskill para listar as skills disponíveis e escolher a mais adequada para sua tarefa."
 
 policy:
   allow_implicit_invocation: false

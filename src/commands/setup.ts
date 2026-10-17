@@ -1,6 +1,6 @@
 import { Command, Option } from 'commander';
 import { loadBundledDevskill } from '../core/bundled-skill.js';
-import { SkillCatalog } from '../core/skill-catalog.js';
+import { LocalSkillCatalog } from '../core/local-skill-catalog.js';
 import { SkillInstaller } from '../core/skill-installer.js';
 import { resolveHostAdapters } from '../hosts/index.js';
 import type { HostTarget } from '../models/skill.js';
@@ -23,7 +23,7 @@ export function registerSetupCommand(program: Command): void {
         .default('all'),
     )
     .action(async (options: SetupOptions) => {
-      const configuredCatalog = new SkillCatalog(await catalogRoot(options));
+      const configuredCatalog = new LocalSkillCatalog(await catalogRoot(options));
       await configuredCatalog.list();
 
       const skill = await loadBundledDevskill();

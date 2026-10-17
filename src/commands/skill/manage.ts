@@ -1,7 +1,7 @@
 import { createInterface } from 'node:readline/promises';
 import { stdin, stdout } from 'node:process';
 import { Command, Option } from 'commander';
-import { SkillCatalog } from '../../core/skill-catalog.js';
+import { LocalSkillCatalog } from '../../core/local-skill-catalog.js';
 import { SkillInstaller } from '../../core/skill-installer.js';
 import { DevskillError } from '../../errors/devskill-error.js';
 import { resolveHostAdapters } from '../../hosts/index.js';
@@ -54,7 +54,7 @@ async function confirmRemoveAll(): Promise<boolean> {
 }
 
 async function selectSkills(
-  catalog: SkillCatalog,
+  catalog: LocalSkillCatalog,
   skillName: string | undefined,
   all: boolean,
 ): Promise<Skill[]> {
@@ -115,7 +115,7 @@ export function registerManageCommand(parent: Command, operation: Operation): vo
       }
     }
 
-    const catalog = new SkillCatalog(await catalogRoot(options));
+    const catalog = new LocalSkillCatalog(await catalogRoot(options));
     const skills = await selectSkills(catalog, skillName, options.all);
     const installer = new SkillInstaller(createPathContext());
     const target = options.target ?? 'all';

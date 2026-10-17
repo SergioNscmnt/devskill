@@ -26,7 +26,7 @@ export function globalSkillsDirectory(host: HostName, context: PathContext): str
   return resolve(context.claudeSkillsDirectory ?? process.env.DEVSKILL_CLAUDE_SKILLS_DIR ?? join(claudeHome, 'skills'));
 }
 
-export function agentSkillName(skill: Skill, host: HostName): string {
+export function agentSkillName(skill: Pick<Skill, 'name'>, host: HostName): string {
   return host === 'codex' ? `devskill-${skill.name}` : `devskill_${skill.name}`;
 }
 
@@ -76,11 +76,11 @@ async function readManifest(destination: string): Promise<Manifest | undefined> 
 export class GlobalSkillManager {
   constructor(private readonly context: PathContext) {}
 
-  destination(skill: Skill, host: HostName): string {
+  destination(skill: Pick<Skill, 'name'>, host: HostName): string {
     return join(globalSkillsDirectory(host, this.context), agentSkillName(skill, host));
   }
 
-  async installed(skill: Skill, host: HostName): Promise<boolean> {
+  async installed(skill: Pick<Skill, 'name'>, host: HostName): Promise<boolean> {
     const destination = this.destination(skill, host);
     const manifest = await readManifest(destination);
     if (!manifest) return false;
@@ -157,7 +157,7 @@ export class GlobalSkillManager {
     }
   }
 
-  async removeManaged(skill: Skill, host: HostName): Promise<boolean> {
+  async removeManaged(skill: Pick<Skill, 'name'>, host: HostName): Promise<boolean> {
     const destination = this.destination(skill, host);
     const manifest = await readManifest(destination);
     if (!manifest) return false;

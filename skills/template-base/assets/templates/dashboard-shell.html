@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dashboard — exemplo estrutural</title>
+</head>
+<body>
+  <!-- Esqueleto sem CSS nem integrações; não equivale a dashboard final funcional. -->
+  <a href="#main-content">Ir para o conteúdo principal</a>
+  <header data-component="navbar">
+    <strong>Nome da aplicação (exemplo)</strong>
+    <div data-component="user-info">
+      <span>Usuário demonstrativo</span>
+      <button type="button" data-action="logout" disabled title="Exemplo sem integração">Sair (demonstração)</button>
+    </div>
+  </header>
+  <aside id="sidebar-panel" data-component="sidebar">
+    <nav aria-label="Navegação principal" data-component="menu-list">
+      <ul><li><a href="#main-content" aria-current="page">Visão Geral</a></li></ul>
+    </nav>
+  </aside>
+  <main id="main-content" data-component="app-content">
+    <h1>Visão Geral</h1>
+    <section aria-label="Indicadores"><h2>Indicadores demonstrativos</h2><p>Conectar fontes reais antes de publicar.</p></section>
+  </main>
+  <footer data-component="footer"><small>Versão, ambiente e status: integrar dados reais.</small></footer>
+</body>
+</html>

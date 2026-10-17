@@ -1,3 +1,4 @@
+import { stat } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { bundledSkillsDirectory } from '../../core/bundled-skill.js';
 import { loadConfig } from '../../core/config-loader.js';
@@ -17,7 +18,15 @@ export async function catalogRoot(options: CatalogOptions): Promise<string> {
 
   const config = await loadConfig();
   if (config.skillsDir) {
-    return config.skillsDir;
+    try {
+      await stat(config.skillsDir);
+      return config.skillsDir;
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+        throw error;
+      }
+      return bundledSkillsDirectory();
+    }
   }
 
   return bundledSkillsDirectory();

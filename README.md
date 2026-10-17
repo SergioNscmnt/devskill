@@ -1,6 +1,6 @@
 # DevSkill CLI
 
-Gerenciador de Agent Skills para Codex e Claude Code. O pacote contém o catálogo; somente as skills escolhidas são copiadas para os diretórios globais dos agentes. Nenhum arquivo é criado nos projetos de trabalho.
+Gerenciador de Agent Skills para Codex e Claude Code. O catálogo é consultado em [skills no GitHub](https://github.com/SergioNscmnt/devskill/tree/main/skills). As skills baixadas ficam em cache local; somente as escolhidas são copiadas para os diretórios globais dos agentes. Nenhum arquivo é criado nos projetos de trabalho.
 
 ## Instalação
 
@@ -16,6 +16,7 @@ devskill-cli init
 ```text
 devskill-cli init
 devskill-cli list
+devskill-cli list update
 devskill-cli install backend
 devskill-cli install all
 devskill-cli install all --sync
@@ -24,19 +25,19 @@ devskill-cli remove all
 devskill-cli update
 ```
 
-`list` verifica os diretórios reais e identifica separadamente Codex e Claude quando os estados diferem. O argumento `all` também vale para `remove`. `--host codex|claude|all` seleciona agentes, e `--source <diretório>` escolhe um catálogo alternativo.
+`list` consulta somente os nomes das skills no GitHub, mostra `(new)` para as que ainda não estão no cache e verifica os diretórios reais dos agentes. A consulta requer acesso ao GitHub. `list update` baixa ou atualiza as skills e seus arquivos auxiliares no cache. `install <nome>` consulta o GitHub e atualiza o cache antes de instalar. O argumento `all` também vale para `remove`. `--host codex|claude|all` seleciona agentes.
 
 As invocações instaladas são `$devskill-backend` no Codex e `/devskill_backend` no Claude Code. Inicie uma nova sessão do agente após instalar ou sincronizar para atualizar a descoberta.
 
 `install` é idempotente e não substitui pastas existentes. As cópias instaladas carregam um manifesto de propriedade e hashes. `remove` apaga somente arquivos gerenciados que continuam inalterados; arquivos modificados ou adicionados são preservados. `--sync` atualiza uma instalação gerenciada apenas após confirmar que seus arquivos continuam intactos.
 
-`update` compara a versão instalada com a tag `latest` do npm e atualiza o pacote global. Skills existentes não são sincronizadas automaticamente; use `devskill-cli install all --sync` quando quiser fazê-lo.
+`update` compara a versão instalada com a tag `latest` do npm e atualiza o pacote global. Novas skills não exigem atualização do pacote: use `list update` para atualizar o catálogo. Skills já instaladas não são sincronizadas automaticamente; use `devskill-cli install all --sync` quando quiser fazê-lo.
 
 O caminho padrão é `~/.agents/skills` para Codex e `~/.claude/skills` para Claude Code. `CLAUDE_CONFIG_DIR` permite alterar a raiz pessoal do Claude. Também são aceitos `DEVSKILL_CODEX_SKILLS_DIR` e `DEVSKILL_CLAUDE_SKILLS_DIR` para definir diretamente os diretórios de skills.
 
 ## Catálogo e desenvolvimento
 
-Cada pasta imediata em `skills/` contendo `SKILL.md` é descoberta automaticamente. O manifesto precisa ter frontmatter YAML com `name` e `description` e instruções no corpo. Recursos auxiliares são copiados com a skill.
+Cada pasta imediata em `skills/` contendo `SKILL.md` é publicada no catálogo do GitHub. O manifesto precisa ter frontmatter YAML com `name` e `description` e instruções no corpo. Recursos auxiliares são baixados com a skill. O cache fica em `$XDG_CACHE_HOME/devskill/skills` (ou `~/.cache/devskill/skills`). Os comandos globais consultam somente o GitHub; `--source`, `DEVSKILL_SKILLS_DIR` e a configuração `skills-dir` continuam disponíveis apenas nos comandos legados.
 
 ```bash
 npm install

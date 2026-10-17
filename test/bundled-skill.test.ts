@@ -8,13 +8,13 @@ import {
   bundledSkillsDirectory,
   loadBundledDevskill,
 } from '../src/core/bundled-skill.js';
-import { SkillCatalog } from '../src/core/skill-catalog.js';
+import { LocalSkillCatalog } from '../src/core/local-skill-catalog.js';
 import { SkillInstaller } from '../src/core/skill-installer.js';
 import { codexAdapter } from '../src/hosts/codex.adapter.js';
 
 describe('skill roteadora devskill', () => {
   it('disponibiliza o catálogo padrão empacotado', async () => {
-    const skills = await new SkillCatalog(bundledSkillsDirectory()).list();
+    const skills = await new LocalSkillCatalog(bundledSkillsDirectory()).list();
 
     assert.equal(skills.some((skill) => skill.name === 'backend'), true);
   });

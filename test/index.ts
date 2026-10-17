@@ -2,6 +2,8 @@ import './host-adapter.test.js';
 import './host-detector.test.js';
 import './bundled-skill.test.js';
 import './global-skills.test.js';
+import './skill-catalog.test.js';
+import './github-list-command.test.js';
 import './markdown-terminal.test.js';
 import './config-loader.test.js';
 import './install-command.test.js';

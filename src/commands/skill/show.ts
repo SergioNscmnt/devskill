@@ -1,5 +1,5 @@
 import { Command } from 'commander';
-import { SkillCatalog } from '../../core/skill-catalog.js';
+import { LocalSkillCatalog } from '../../core/local-skill-catalog.js';
 import { renderMarkdownForTerminal } from '../../utils/markdown-terminal.js';
 import { catalogRoot, type CatalogOptions } from './options.js';
 
@@ -14,7 +14,7 @@ export function registerShowCommand(parent: Command): void {
     .option('--source <directory>', 'diretório do catálogo de skills')
     .option('--raw', 'exibe o Markdown original, sem formatação de terminal', false)
     .action(async (skillName: string, options: ShowOptions) => {
-      const skill = await new SkillCatalog(await catalogRoot(options)).get(skillName);
+      const skill = await new LocalSkillCatalog(await catalogRoot(options)).get(skillName);
       const content = options.raw
         ? skill.content
         : renderMarkdownForTerminal(skill.content);

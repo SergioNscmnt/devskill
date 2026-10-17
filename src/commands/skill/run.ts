@@ -2,7 +2,7 @@ import { resolve } from 'node:path';
 import { Command, Option } from 'commander';
 import { loadConfig } from '../../core/config-loader.js';
 import { detectHostForSkill } from '../../core/host-detector.js';
-import { SkillCatalog } from '../../core/skill-catalog.js';
+import { LocalSkillCatalog } from '../../core/local-skill-catalog.js';
 import { SkillInstaller } from '../../core/skill-installer.js';
 import { SkillRunner } from '../../core/skill-runner.js';
 import { DevskillError } from '../../errors/devskill-error.js';
@@ -36,7 +36,7 @@ export function registerRunCommand(parent: Command): void {
     .option('--dry-run', 'mostra o comando sem executá-lo', false)
     .action(
       async (skillName: string, args: string[], options: RunOptions) => {
-        const skill = await new SkillCatalog(await catalogRoot(options)).get(skillName);
+        const skill = await new LocalSkillCatalog(await catalogRoot(options)).get(skillName);
         const cwd = resolve(options.cwd);
         const installer = new SkillInstaller(createPathContext(cwd));
         const host = options.agent

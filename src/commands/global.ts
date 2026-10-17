@@ -1,13 +1,15 @@
 import { Command, Option } from 'commander';
 import { execa } from 'execa';
-import { readFile } from 'node:fs/promises';
-import { SkillCatalog } from '../core/skill-catalog.js';
+import { readFile, stat } from 'node:fs/promises';
+import { join } from 'node:path';
+import { SkillCatalog, cachedSkillsDirectory } from '../core/skill-catalog.js';
 import { GlobalSkillManager } from '../core/global-skills.js';
+import { loadSkill } from '../core/skill-loader.js';
+import { DevskillError } from '../errors/devskill-error.js';
 import { createPathContext } from '../utils/paths.js';
-import { catalogRoot, type CatalogOptions } from './skill/options.js';
 import type { HostName } from '../models/skill.js';
 
-interface GlobalOptions extends CatalogOptions { host: 'all' | HostName; sync?: boolean; }
+interface GlobalOptions { host: 'all' | HostName; sync?: boolean; }
 const hosts = ['codex', 'claude'] as const;
 
 export async function updatePackage(
@@ -27,6 +29,33 @@ async function selectedHosts(value: GlobalOptions['host']): Promise<readonly Hos
   return value === 'all' ? hosts : [value];
 }
 
+async function cachedNames(names: string[]): Promise<Set<string>> {
+  const root = cachedSkillsDirectory();
+  const present = await Promise.all(names.map(async (name) => {
+    try {
+      return (await stat(join(root, name, 'SKILL.md'))).isFile();
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === 'ENOENT') return false;
+      throw error;
+    }
+  }));
+  return new Set(names.filter((_, index) => present[index]));
+}
+
+async function printSkillList(names: string[], known: Set<string>): Promise<void> {
+  const skillManager = manager();
+  process.stdout.write('Available SKILLs:\n\n');
+  for (const name of names) {
+    if (!known.has(name)) {
+      process.stdout.write(`${name.padEnd(15)} (new)\n`);
+      continue;
+    }
+    const [codex, claude] = await Promise.all(hosts.map((host) => skillManager.installed({ name }, host)));
+    const status = codex && claude ? 'installed' : !codex && !claude ? 'install' : `codex:${codex ? 'installed' : 'install'} claude:${claude ? 'installed' : 'install'}`;
+    process.stdout.write(`${name.padEnd(15)} (${status})\n`);
+  }
+}
+
 export function registerGlobalCommands(program: Command): void {
   program.command('init')
     .description('Inicializa os diretórios globais do Codex e Claude Code')
@@ -41,44 +70,51 @@ export function registerGlobalCommands(program: Command): void {
       process.stdout.write('Nenhuma skill foi instalada.\n');
     });
 
-  program.command('list')
-    .description('Lista o catálogo e o estado real de instalação global')
-    .option('--source <directory>', 'diretório do catálogo')
-    .action(async (options: CatalogOptions) => {
-      const skills = await new SkillCatalog(await catalogRoot(options)).list();
-      const skillManager = manager();
-      process.stdout.write('Available SKILLs:\n\n');
-      for (const skill of skills) {
-        const [codex, claude] = await Promise.all(hosts.map((host) => skillManager.installed(skill, host)));
-        const status = codex && claude ? 'installed' : !codex && !claude ? 'install' : `codex:${codex ? 'installed' : 'install'} claude:${claude ? 'installed' : 'install'}`;
-        process.stdout.write(`${skill.name.padEnd(15)} (${status})\n`);
-      }
+  const list = program.command('list')
+    .description('Lista o catálogo do GitHub e o estado real de instalação global')
+    .action(async () => {
+      const names = await new SkillCatalog().list();
+      await printSkillList(names, await cachedNames(names));
+    });
+
+  list.command('update')
+    .description('Atualiza o catálogo local com as skills do GitHub')
+    .action(async () => {
+      const names = await new SkillCatalog().update();
+      process.stdout.write(`Catálogo atualizado com ${names.length} skill(s) do GitHub.\n`);
+      await printSkillList(names, new Set(names));
     });
 
   for (const operation of ['install', 'remove'] as const) {
     program.command(`${operation} <skill_name>`)
       .description(operation === 'install' ? 'Instala uma skill globalmente para os agentes' : 'Remove skills DevSkill dos diretórios globais')
-      .option('--source <directory>', 'diretório do catálogo')
       .addOption(new Option('--host <host>', 'agente de destino').choices(['all', 'codex', 'claude']).default('all'))
       .option('--sync', 'sincroniza explicitamente instalações gerenciadas', false)
       .action(async (name: string, options: GlobalOptions) => {
-        const catalog = new SkillCatalog(await catalogRoot(options));
-        const skills = name === 'all' ? await catalog.list() : [await catalog.get(name)];
+        const catalog = new SkillCatalog();
+        const available = operation === 'install' ? await catalog.update() : await catalog.list();
+        if (name !== 'all' && !available.includes(name)) {
+          throw new DevskillError(`Skill não encontrada no catálogo: ${name}`, 'SKILL_NOT_FOUND');
+        }
+        const selected = name === 'all' ? available : [name];
         const skillManager = manager();
         const targetHosts = await selectedHosts(options.host);
         if (operation === 'install') {
+          const skills = await Promise.all(selected.map((skillName) => loadSkill(join(cachedSkillsDirectory(), skillName))));
           for (const skill of skills) for (const host of targetHosts) await skillManager.assertCanInstall(skill, host, options.sync);
-        }
-        for (const skill of skills) {
-          for (const host of targetHosts) {
-            if (operation === 'install') {
+          for (const skill of skills) {
+            for (const host of targetHosts) {
               const status = await skillManager.install(skill, host, options.sync);
               process.stdout.write(`${skill.name} → ${host}: ${status}\n`);
               process.stdout.write(`  Use ${host === 'codex' ? `$devskill-${skill.name}` : `/devskill_${skill.name}`} no chat do agente.\n`);
-            } else {
-              const removed = await skillManager.removeManaged(skill, host);
-              process.stdout.write(`${skill.name} → ${host}: ${removed ? 'removed' : 'not-installed'}\n`);
             }
+          }
+          return;
+        }
+        for (const skillName of selected) {
+          for (const host of targetHosts) {
+            const removed = await skillManager.removeManaged({ name: skillName }, host);
+            process.stdout.write(`${skillName} → ${host}: ${removed ? 'removed' : 'not-installed'}\n`);
           }
         }
       });
