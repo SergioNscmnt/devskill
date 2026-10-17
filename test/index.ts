@@ -1,4 +1,5 @@
 import './host-adapter.test.js';
+import './cli.test.js';
 import './host-detector.test.js';
 import './bundled-skill.test.js';
 import './global-skills.test.js';

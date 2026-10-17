@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { realpathSync } from 'node:fs';
+import { readFileSync, realpathSync } from 'node:fs';
 import { resolve } from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
@@ -9,11 +9,13 @@ import { registerGlobalCommands } from './commands/global.js';
 import { registerSkillCommands } from './commands/skill/index.js';
 import { DevskillError } from './errors/devskill-error.js';
 
+const packageVersion = (JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8')) as { version: string }).version;
+
 export function createProgram(): Command {
   const program = new Command()
     .name('devskill-cli')
     .description('Gerenciador de Agent Skills para Codex e Claude Code')
-    .version('0.3.0')
+    .version(packageVersion)
     .showHelpAfterError();
 
   registerGlobalCommands(program);
