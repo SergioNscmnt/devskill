@@ -25,7 +25,9 @@ devskill-cli remove all
 devskill-cli update
 ```
 
-`list` consulta somente os nomes das skills no GitHub, mostra `(new)` para as que ainda não estão no cache e verifica os diretórios reais dos agentes. A consulta requer acesso ao GitHub. `list update` baixa ou atualiza as skills e seus arquivos auxiliares no cache. `install <nome>` consulta o GitHub e atualiza o cache antes de instalar. O argumento `all` também vale para `remove`. `--host codex|claude|all` seleciona agentes.
+`list` consulta os nomes das skills pela API do GitHub, mostra `(new)` para as que ainda não estão no cache e verifica os diretórios reais dos agentes. A consulta requer acesso ao GitHub. `list update` baixa ou atualiza todas as skills e seus arquivos auxiliares no cache. `install <nome>` consulta a API e atualiza apenas a skill escolhida antes de instalar. O argumento `all` também vale para `remove`. `--host codex|claude|all` seleciona agentes.
+
+O catálogo usa a API REST do GitHub, com versão `2026-03-10`, para obter o índice e os hashes dos arquivos. Os downloads usam um commit fixo e são conferidos por hash; arquivos válidos já presentes no cache são reaproveitados. A API pública permite 60 consultas por hora por IP sem autenticação. Se a cota compartilhada acabar, o CLI informa o horário de renovação quando disponível. Configure `DEVSKILL_GITHUB_TOKEN` (ou `GITHUB_TOKEN`) com um token de leitura do GitHub para ampliar o limite.
 
 As invocações instaladas são `$devskill-backend` no Codex e `/devskill_backend` no Claude Code. Inicie uma nova sessão do agente após instalar ou sincronizar para atualizar a descoberta.
 

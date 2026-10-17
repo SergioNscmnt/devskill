@@ -12,6 +12,8 @@ test('list marca skill remota nova, list update baixa e install usa o cache', as
   const content = '---\nname: nova\ndescription: Uma skill nova.\n---\n\n# Nova\n';
   const bytes = Buffer.from(content);
   const sha = createHash('sha1').update(`blob ${bytes.length}\0`).update(bytes).digest('hex');
+  const commitSha = 'a'.repeat(40);
+  const treeSha = 'b'.repeat(40);
   const previousFetch = globalThis.fetch;
   const previousWrite = process.stdout.write;
   const previousEnv = {
@@ -26,10 +28,11 @@ test('list marca skill remota nova, list update baixa e install usa o cache', as
   process.env.DEVSKILL_CLAUDE_SKILLS_DIR = join(root, 'claude');
   globalThis.fetch = async (input) => {
     const url = String(input);
-    if (url.endsWith('/git/trees/main?recursive=1')) return Response.json({ truncated: false, tree: [
+    if (url.endsWith('/commits/main')) return Response.json({ sha: commitSha, commit: { tree: { sha: treeSha } } });
+    if (url.endsWith('/git/trees/main?recursive=1') || url.endsWith(`/git/trees/${treeSha}?recursive=1`)) return Response.json({ truncated: false, tree: [
       { path: 'skills/nova/SKILL.md', type: 'blob', mode: '100644', size: bytes.length, sha },
     ] });
-    if (url.endsWith(`/git/blobs/${sha}`)) return Response.json({ encoding: 'base64', content: bytes.toString('base64') });
+    if (url.endsWith(`/${commitSha}/skills/nova/SKILL.md`)) return new Response(bytes);
     return new Response(null, { status: 404 });
   };
 

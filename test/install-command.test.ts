@@ -19,16 +19,21 @@ describe('comando install global', () => {
     await mkdir(home);
     const source = await readFile(join(process.cwd(), 'skills', 'backend', 'SKILL.md'));
     const sha = createHash('sha1').update(`blob ${source.length}\0`).update(source).digest('hex');
+    const commitSha = 'a'.repeat(40);
+    const treeSha = 'b'.repeat(40);
     const mockPath = join(root, 'mock-github.mjs');
     await writeFile(mockPath, `
 const sha = ${JSON.stringify(sha)};
+const commitSha = ${JSON.stringify(commitSha)};
+const treeSha = ${JSON.stringify(treeSha)};
 const content = ${JSON.stringify(source.toString('base64'))};
 globalThis.fetch = async (input) => {
   const url = String(input);
-  if (url.endsWith('/git/trees/main?recursive=1')) return Response.json({ truncated: false, tree: [
+  if (url.endsWith('/commits/main')) return Response.json({ sha: commitSha, commit: { tree: { sha: treeSha } } });
+  if (url.endsWith('/git/trees/' + treeSha + '?recursive=1')) return Response.json({ truncated: false, tree: [
     { path: 'skills/backend/SKILL.md', type: 'blob', mode: '100644', size: ${source.length}, sha },
   ] });
-  if (url.endsWith('/git/blobs/' + sha)) return Response.json({ encoding: 'base64', content });
+  if (url.endsWith('/' + commitSha + '/skills/backend/SKILL.md')) return new Response(Buffer.from(content, 'base64'));
   return new Response(null, { status: 404 });
 };
 `);

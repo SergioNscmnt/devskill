@@ -92,7 +92,15 @@ export function registerGlobalCommands(program: Command): void {
       .option('--sync', 'sincroniza explicitamente instalações gerenciadas', false)
       .action(async (name: string, options: GlobalOptions) => {
         const catalog = new SkillCatalog();
-        const available = operation === 'install' ? await catalog.update() : await catalog.list();
+        let available: string[];
+        if (operation === 'install' && name === 'all') {
+          available = await catalog.update();
+        } else if (operation === 'install') {
+          await catalog.updateSkill(name);
+          available = [name];
+        } else {
+          available = await catalog.list();
+        }
         if (name !== 'all' && !available.includes(name)) {
           throw new DevskillError(`Skill não encontrada no catálogo: ${name}`, 'SKILL_NOT_FOUND');
         }
