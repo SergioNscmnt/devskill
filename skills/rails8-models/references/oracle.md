@@ -16,14 +16,14 @@
 ## Exemplo legado (ilustrativo, não executar sem verificar adapter)
 ```ruby
 class Inventariado < ApplicationRecord
-  self.table_name = "INVENTARIADOS"
+  self.table_name = "TABLE_NAME"
   self.primary_key = "ID"  # ajustar ao schema efetivo
 
-  belongs_to :processo, foreign_key: "PROCESSO_ID", optional: false
-  validates :inventario_ro, inclusion: { in: [true, false] }
+  belongs_to :TABLE, foreign_key: "TABLE_NAME_ID", optional: false
+  validates :ATRIBUTE_BOOLEAN, inclusion: { in: [true, false] }
 end
 ```
-Se `INVENTARIO_RO` for `NUMBER(1)`, um cast explícito/atributo booleano pode ser necessário conforme adapter; sem isso os valores podem chegar como `0`/`1` e a validação acima falhar. Ao incluir coluna em tabela antiga, fazer backfill e aplicar NOT NULL/CHECK apenas na política temporal correta, sem invalidar registros históricos.
+Se `ATRIBUTE_BOOLEAN` for `NUMBER(1)`, um cast explícito/atributo booleano pode ser necessário conforme adapter; sem isso os valores podem chegar como `0`/`1` e a validação acima falhar. Ao incluir coluna em tabela antiga, fazer backfill e aplicar NOT NULL/CHECK apenas na política temporal correta, sem invalidar registros históricos.
 
 ## Conversão orientativa SQL legado → Rails
 - `VARCHAR2(120 CHAR)` → `string, limit: 120` (confirmar semântica de comprimento).
