@@ -92,6 +92,10 @@ export class GlobalSkillManager {
     }
   }
 
+  async managed(skill: Pick<Skill, 'name'>, host: HostName): Promise<boolean> {
+    return (await readManifest(this.destination(skill, host)))?.source === skill.name;
+  }
+
   async assertCanInstall(skill: Skill, host: HostName, sync = false): Promise<void> {
     const destination = this.destination(skill, host);
     const managed = await readManifest(destination);

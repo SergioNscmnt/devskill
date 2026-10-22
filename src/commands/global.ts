@@ -1,6 +1,6 @@
 import { Command, Option } from 'commander';
 import { execa } from 'execa';
-import { readFile, stat } from 'node:fs/promises';
+import { stat } from 'node:fs/promises';
 import { join } from 'node:path';
 import { SkillCatalog, cachedSkillsDirectory } from '../core/skill-catalog.js';
 import { GlobalSkillManager } from '../core/global-skills.js';
@@ -11,17 +11,6 @@ import type { HostName } from '../models/skill.js';
 
 interface GlobalOptions { host: 'all' | HostName; sync?: boolean; }
 const hosts = ['codex', 'claude'] as const;
-
-export async function updatePackage(
-  current: string,
-  fetchLatest: () => Promise<string>,
-  install: (version: string) => Promise<void>,
-): Promise<{ latest: string; updated: boolean }> {
-  const latest = await fetchLatest();
-  if (compareVersions(latest, current) <= 0) return { latest, updated: false };
-  await install(latest);
-  return { latest, updated: true };
-}
 
 function manager(): GlobalSkillManager { return new GlobalSkillManager(createPathContext()); }
 
@@ -129,48 +118,31 @@ export function registerGlobalCommands(program: Command): void {
   }
 
   program.command('update')
-    .description('Verifica e atualiza o pacote npm DevSkill')
+    .description('Atualiza as skills globais já instaladas a partir do GitHub')
     .action(async () => {
-      const current = await installedPackageVersion();
-      let result: { latest: string; updated: boolean };
-      try {
-        result = await updatePackage(current, async () => {
-          const response = await fetch('https://registry.npmjs.org/@jsndev%2fdevskill/latest', { signal: AbortSignal.timeout(10000) });
-          if (!response.ok) throw new Error(`npm registry respondeu HTTP ${response.status}`);
-          const metadata = await response.json() as { version?: unknown };
-          if (typeof metadata.version !== 'string') throw new Error('Resposta do registry sem versão válida');
-          return metadata.version;
-        }, async (version) => {
-          await execa('npm', ['install', '--global', `@jsndev/devskill@${version}`], { stdio: 'inherit' });
-        });
-      } catch (error) {
-        throw new Error(`Falha ao verificar/atualizar pelo npm: ${error instanceof Error ? error.message : String(error)}. Confira rede e permissões do npm; o CLI não usa sudo.`);
+      const catalog = new SkillCatalog();
+      const names = await catalog.list();
+      const skillManager = manager();
+      const installed = [] as { name: string; host: HostName }[];
+      for (const name of names) {
+        for (const host of hosts) {
+          if (await skillManager.managed({ name }, host)) installed.push({ name, host });
+        }
       }
-      process.stdout.write(`Versão instalada: ${current}\nVersão publicada: ${result.latest}\n`);
-      if (!result.updated) {
-        process.stdout.write('O pacote já está atualizado.\n');
+      if (installed.length === 0) {
+        process.stdout.write('Nenhuma skill DevSkill instalada para atualizar.\n');
         return;
       }
-      process.stdout.write('Pacote atualizado. As skills globais não foram alteradas.\n');
-      process.stdout.write('Para sincronizar skills explicitamente, execute: devskill-cli install all --sync\n');
+      const skills = new Map<string, Awaited<ReturnType<typeof loadSkill>>>();
+      for (const name of new Set(installed.map(({ name }) => name))) {
+        await catalog.updateSkill(name);
+        skills.set(name, await loadSkill(join(cachedSkillsDirectory(), name)));
+      }
+      for (const { name, host } of installed) await skillManager.assertCanInstall(skills.get(name)!, host, true);
+      for (const { name, host } of installed) {
+        const status = await skillManager.install(skills.get(name)!, host, true);
+        process.stdout.write(`${name} → ${host}: ${status}\n`);
+      }
+      process.stdout.write('Para atualizar o pacote, execute: npm install @jsndev/devskill@latest\n');
     });
-}
-
-async function installedPackageVersion(): Promise<string> {
-  const paths = [new URL('../../package.json', import.meta.url), new URL('../../../package.json', import.meta.url)];
-  for (const path of paths) {
-    try {
-      const data = JSON.parse(await readFile(path, 'utf8')) as { version?: string };
-      if (data.version) return data.version;
-    } catch { /* Try the other package layout. */ }
-  }
-  throw new Error('Não foi possível localizar a versão instalada do pacote');
-}
-
-export function compareVersions(left: string, right: string): number {
-  const parse = (version: string) => version.replace(/^v/, '').split('.').slice(0, 3).map((part) => Number(part.split('-')[0]));
-  const a = parse(left); const b = parse(right);
-  if (a.length !== 3 || b.length !== 3 || [...a, ...b].some((n) => !Number.isInteger(n))) throw new Error('Versão SemVer inválida recebida do npm');
-  for (let i = 0; i < 3; i++) if (a[i] !== b[i]) return a[i]! > b[i]! ? 1 : -1;
-  return 0;
 }

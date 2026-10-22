@@ -5,7 +5,6 @@ import { join } from 'node:path';
 import { test } from 'node:test';
 import { LocalSkillCatalog } from '../src/core/local-skill-catalog.js';
 import { GlobalSkillManager, agentSkillName, globalSkillsDirectory } from '../src/core/global-skills.js';
-import { compareVersions, updatePackage } from '../src/commands/global.js';
 
 const context = (userHome: string) => ({
   projectRoot: join(userHome, 'project'), userHome,
@@ -80,19 +79,11 @@ test('catalogo reconhece nova pasta válida e rejeita SKILL.md inválido', async
   } finally { await rm(f.root, { recursive: true, force: true }); }
 });
 
-test('remove all gerenciado e atualização npm podem ser simulados sem rede', async () => {
+test('remove all gerenciado', async () => {
   const f = await fixture();
   try {
     const skills = await f.catalog.list();
     for (const skill of skills) for (const host of ['codex', 'claude'] as const) await f.manager.install(skill, host);
     for (const skill of skills) for (const host of ['codex', 'claude'] as const) assert.equal(await f.manager.removeManaged(skill, host), true);
-    assert.equal(compareVersions('1.2.0', '1.1.9'), 1);
-    assert.equal(compareVersions('1.2.0', '1.2.0'), 0);
-    let installed = '';
-    const result = await updatePackage('1.0.0', async () => '1.1.0', async (version) => { installed = version; });
-    assert.deepEqual(result, { latest: '1.1.0', updated: true });
-    assert.equal(installed, '1.1.0');
-    const current = await updatePackage('1.1.0', async () => '1.1.0', async () => assert.fail('não deve atualizar'));
-    assert.equal(current.updated, false);
   } finally { await rm(f.root, { recursive: true, force: true }); }
 });
