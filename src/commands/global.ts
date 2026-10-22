@@ -140,6 +140,10 @@ export function registerGlobalCommands(program: Command): void {
       }
       for (const { name, host } of installed) await skillManager.assertCanInstall(skills.get(name)!, host, true);
       for (const { name, host } of installed) {
+        if (await skillManager.current(skills.get(name)!, host)) {
+          process.stdout.write(`${name} → ${host}: unchanged\n`);
+          continue;
+        }
         const status = await skillManager.install(skills.get(name)!, host, true);
         process.stdout.write(`${name} → ${host}: ${status}\n`);
       }

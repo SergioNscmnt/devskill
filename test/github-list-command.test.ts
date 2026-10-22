@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { lstat, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
@@ -63,6 +63,9 @@ test('list marca skill remota nova, list update baixa e install usa o cache', as
     assert.match(updated, /npm install @jsndev\/devskill@latest/);
     assert.match(await readFile(installedPath, 'utf8'), /Versão atualizada/);
     await assert.rejects(readFile(join(root, 'claude', 'devskill_nova', 'SKILL.md'), 'utf8'), { code: 'ENOENT' });
+    const inode = (await lstat(installedPath)).ino;
+    assert.match(await run('update'), /nova → codex: unchanged/);
+    assert.equal((await lstat(installedPath)).ino, inode);
     await writeFile(installedPath, 'edição local');
     await assert.rejects(run('update'), /arquivos alterados ou adicionais/);
     assert.equal(await readFile(installedPath, 'utf8'), 'edição local');

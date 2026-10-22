@@ -57,6 +57,16 @@ function rewriteFrontmatter(source: string, name: string): string {
   return `${match[1]}${updated}${match[3]}${source.slice(match[0].length)}`;
 }
 
+async function skillFileBytes(skill: Skill, host: HostName, item: string): Promise<Buffer> {
+  const sourcePath = join(skill.directory, item);
+  const sourceInfo = await lstat(sourcePath);
+  if (sourceInfo.isSymbolicLink() || !sourceInfo.isFile()) throw new DevskillError(`Arquivo auxiliar inseguro na skill: ${sourcePath}`, 'UNSAFE_SKILL_PATH');
+  const bytes = await readFile(sourcePath);
+  return item === 'SKILL.md' && host === 'codex'
+    ? Buffer.from(rewriteFrontmatter(bytes.toString('utf8'), agentSkillName(skill, host)))
+    : bytes;
+}
+
 async function readManifest(destination: string): Promise<Manifest | undefined> {
   try {
     const info = await lstat(destination);
@@ -94,6 +104,17 @@ export class GlobalSkillManager {
 
   async managed(skill: Pick<Skill, 'name'>, host: HostName): Promise<boolean> {
     return (await readManifest(this.destination(skill, host)))?.source === skill.name;
+  }
+
+  async current(skill: Skill, host: HostName): Promise<boolean> {
+    const manifest = await readManifest(this.destination(skill, host));
+    if (manifest?.source !== skill.name) return false;
+    const files = await collectFiles(skill.directory);
+    if (files.length !== Object.keys(manifest.files).length) return false;
+    for (const item of files) {
+      if (manifest.files[item] !== digest(await skillFileBytes(skill, host, item))) return false;
+    }
+    return true;
   }
 
   async assertCanInstall(skill: Skill, host: HostName, sync = false): Promise<void> {
@@ -140,11 +161,7 @@ export class GlobalSkillManager {
         const target = resolve(stage, item);
         if (!target.startsWith(`${resolve(stage)}${sep}`)) throw new DevskillError('Caminho inválido na skill', 'UNSAFE_SKILL_PATH');
         await mkdir(dirname(target), { recursive: true });
-        const sourcePath = join(skill.directory, item);
-        const sourceInfo = await lstat(sourcePath);
-        if (sourceInfo.isSymbolicLink() || !sourceInfo.isFile()) throw new DevskillError(`Arquivo auxiliar inseguro na skill: ${sourcePath}`, 'UNSAFE_SKILL_PATH');
-        let bytes = await readFile(sourcePath);
-        if (item === 'SKILL.md' && host === 'codex') bytes = Buffer.from(rewriteFrontmatter(bytes.toString('utf8'), agentSkillName(skill, host)));
+        const bytes = await skillFileBytes(skill, host, item);
         await writeFile(target, bytes, { flag: 'wx' });
         hashes[item] = digest(bytes);
       }
