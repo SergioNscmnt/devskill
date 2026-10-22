@@ -1,11 +1,24 @@
-# backend
+# Backend
 
-Skill portavel para Codex e Claude Code, baseada no padrao Agent Skills.
+Skill de desenvolvimento, revisão e refatoração de backend e APIs para Codex e Claude Code.
 
-## Conteudo
-- `SKILL.md`: orientacoes principais, objetivo, fluxo e criterios de aceite.
-- `references/`: arquitetura, seguranca, testes, APIs/dados e revisao.
-- `scripts/`: utilitarios Python 3.9+ sem dependencias externas, por padrao somente leitura.
+## Instalação pelo CLI
+
+```bash
+npm install --global @jsndev/devskill
+devskill-cli install backend
+```
+
+O CLI consulta o catálogo no GitHub e instala a skill para os dois agentes. Use `--host codex` ou `--host claude` para escolher apenas um. Inicie uma nova sessão do agente após instalar.
+
+## Uso
+
+Invoque `$devskill-backend` no Codex ou `/devskill_backend` no Claude Code.
+
+## Conteúdo
+- `SKILL.md`: orientações principais, objetivo, fluxo e critérios de aceite.
+- `references/`: arquitetura, segurança, testes, APIs/dados e revisão.
+- `scripts/`: utilitários Python 3.9+ sem dependências externas, por padrão somente leitura.
 - `assets/templates/`: plano, checklist e resumo de entrega.
 
 ## Validar a skill
@@ -21,10 +34,4 @@ python3 scripts/inspect-backend.py /caminho/projeto
 python3 scripts/check-secrets.py /caminho/projeto
 ```
 
-`check-secrets.py` retorna codigo 2 se encontrar padroes suspeitos; nao exibe o valor detectado. Pode haver falsos positivos e falsos negativos. Nao substitui auditoria dedicada.
-
-## Instalar globalmente
-Copie toda a pasta para `~/.codex/skills/backend/` e/ou `~/.claude/skills/backend/`.
-Para instalar a partir de uma fonte unica no Linux/WSL, tambem e possivel criar links simbolicos nos caminhos esperados pelos agentes.
-
-A ativacao automatica depende de o agente descobrir a skill e julga-la relevante ao pedido.
+`check-secrets.py` retorna código 2 se encontrar padrões suspeitos; não exibe o valor detectado. Pode haver falsos positivos e falsos negativos. Não substitui auditoria dedicada.

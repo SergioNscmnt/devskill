@@ -1,14 +1,15 @@
-# rails8
+# Rails 8
 
 Skill portátil no formato Agent Skills para orientar Codex e Claude Code no desenvolvimento Ruby on Rails 8 (MVC, Active Record, Hotwire, Solid Cache/Queue, segurança e testes).
 
-## Instalação global
+## Instalação pelo CLI
+
 ```bash
-mkdir -p ~/.codex/skills ~/.claude/skills
-cp -r rails8 ~/.codex/skills/
-cp -r rails8 ~/.claude/skills/
+npm install --global @jsndev/devskill
+devskill-cli install rails8
 ```
-Caminhos e mecanismos de descoberta podem variar conforme versões/configuração dos agentes. Verifique documentação do agente instalado.
+
+O CLI consulta o catálogo no GitHub e instala a skill para os dois agentes. Use `--host codex` ou `--host claude` para escolher apenas um. Inicie uma nova sessão do agente após instalar.
 
 ## Comandos
 ```bash
@@ -19,6 +20,6 @@ bash scripts/audit_rails.sh /caminho/projeto
 Scripts não instalam dependências ou alteram arquivos deliberadamente. O script de auditoria pode buscar atualizações de advisories na rede, se o comando `bundler-audit` disponível aceitar `--update`.
 
 ## Uso
-Peça: "Revise esta implementação Rails 8 conforme a rails8 e corrija falhas de segurança, N+1 e problemas de Active Record."
+Invoque `$devskill-rails8` no Codex ou `/devskill_rails8` no Claude Code. Por exemplo: "Revise esta implementação Rails 8 e corrija falhas de segurança, N+1 e problemas de Active Record."
 
 Não substitui revisão humana, testes de integração ou avaliação de segurança atualizada.

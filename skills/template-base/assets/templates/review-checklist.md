@@ -5,7 +5,11 @@
 - [ ] Links e seção ativa fazem sentido para o produto
 - [ ] Controle de sidebar acessível quando presente
 - [ ] Fluxo de teclado, foco e salto para main verificados
-- [ ] Responsividade e overflow verificados
+- [ ] Responsividade, zoom e overflow verificados
 - [ ] Estados loading, vazio e erro coerentes
 - [ ] Métricas, uptime, versão e ambiente são reais ou marcados como exemplo
+- [ ] Formulário: fluxo escolhido pela complexidade e navegação sem perda de valores
+- [ ] Campos com rótulos, ajuda, obrigatório e erros associados; validação cliente e servidor
+- [ ] Máscaras, uploads e rascunhos usados somente quando aplicáveis e integrados
+- [ ] Envio, falhas e sucesso refletem a resposta real; dados sensíveis protegidos
 - [ ] Testes executados e limitações documentadas

@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Formulário — exemplo estrutural</title>
+</head>
+<body>
+  <!-- Estrutura demonstrativa: adaptar ao produto e conectar validação, envio e persistência. -->
+  <a href="#main-content">Ir para o conteúdo principal</a>
+  <header data-component="navbar">
+    <strong>Aplicação (exemplo)</strong>
+    <div data-component="user-info"><span>Área do usuário</span></div>
+  </header>
+  <aside id="sidebar-panel" data-component="sidebar">
+    <nav aria-label="Navegação principal" data-component="menu-list">
+      <ul><li><a href="#main-content" aria-current="page">Cadastro</a></li></ul>
+    </nav>
+  </aside>
+  <main id="main-content" data-component="app-content">
+    <h1>Cadastro (exemplo)</h1>
+    <form method="post" aria-labelledby="form-title">
+      <h2 id="form-title">Dados de contato</h2>
+      <p>Campos obrigatórios estão marcados como obrigatórios.</p>
+      <div>
+        <label for="name">Nome completo (obrigatório)</label>
+        <input id="name" name="name" type="text" autocomplete="name" required aria-describedby="name-help">
+        <p id="name-help">Informe o nome usado neste cadastro.</p>
+      </div>
+      <div>
+        <label for="email">E-mail (obrigatório)</label>
+        <input id="email" name="email" type="email" autocomplete="email" required aria-describedby="email-help">
+        <p id="email-help">Usaremos este endereço para contato.</p>
+      </div>
+      <button type="submit" disabled title="Exemplo sem integração">Enviar (demonstração)</button>
+    </form>
+  </main>
+  <footer data-component="footer"><small>Exemplo estrutural; conectar dados reais antes de publicar.</small></footer>
+</body>
+</html>

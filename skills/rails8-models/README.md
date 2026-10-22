@@ -1,18 +1,18 @@
-# rails8-models
+# Rails 8 Models
 
 Skill portátil Agent Skills para Rails 8, com tipagem e modelagem específica para PostgreSQL, MariaDB e Oracle.
 
-## Instalação (global)
+## Instalação pelo CLI
+
 ```bash
-mkdir -p ~/.codex/skills ~/.claude/skills
-cp -r rails8-models ~/.codex/skills/
-cp -r rails8-models ~/.claude/skills/
+npm install --global @jsndev/devskill
+devskill-cli install rails8-models
 ```
 
-Para `devskill-cli`, publicar **a pasta completa**, incluindo `SKILL.md`, `references`, `scripts` e `assets`.
+O CLI consulta o catálogo no GitHub e instala a skill com seus arquivos auxiliares para os dois agentes. Use `--host codex` ou `--host claude` para escolher apenas um. Inicie uma nova sessão do agente após instalar.
 
 ## Uso
-Peça: "Use rails8-models para criar models e migrations para o banco configurado, apresentando matriz de tipos, validações, constraints e testes."
+Invoque `$devskill-rails8-models` no Codex ou `/devskill_rails8-models` no Claude Code. Por exemplo: "Use esta skill para criar models e migrations para o banco configurado, apresentando matriz de tipos, validações, constraints e testes."
 
 ## Scripts
 ```bash
